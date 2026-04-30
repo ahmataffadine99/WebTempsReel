@@ -20,6 +20,7 @@ async function main() {
       firstName: 'AHMAT',
       lastName: 'Abdoulaye',
       role: 'CLIENT',
+      isVerified: true,
     },
   })
 
@@ -30,6 +31,7 @@ async function main() {
       firstName: 'ElWARDI',
       lastName: 'Abdelrazakh',
       role: 'CONSEILLER',
+      isVerified: true,
     },
   });
 
@@ -40,6 +42,7 @@ async function main() {
       firstName: 'ZAKARIA',
       lastName: 'Maarifi',
       role: 'DIRECTEUR',
+      isVerified: true,
     },
   });
 

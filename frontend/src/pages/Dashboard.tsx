@@ -6,9 +6,10 @@ import { Header } from '../components/Header';
 import { NewsFeed } from '../components/NewsFeed';
 import { NotificationList } from '../components/NotificationList';
 import { Chat } from '../components/Chat';
+import { AdminPanel } from '../components/AdminPanel';
 
 export const Dashboard = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -31,9 +32,9 @@ export const Dashboard = () => {
               <Chat />
             </div>
 
-            {/* Zone pour les Notifications (SSE) */}
+            {/* Zone pour les Notifications ou le Panneau d'administration */}
             <div className="col-span-3 h-[calc(100vh-8rem)]">
-              <NotificationList />
+              {user?.role === 'CLIENT' ? <NotificationList /> : <AdminPanel />}
             </div>
           </div>
         </main>

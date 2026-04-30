@@ -22,28 +22,34 @@ export const Chat = () => {
   const [chatType, setChatType] = useState<'PRIVATE' | 'GROUP'>('PRIVATE');
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Récupérer la liste des utilisateurs pour trouver les vrais IDs (au lieu de coder en dur 1 et 2)
+  // Récupérer la liste des utilisateurs pour trouver les vrais IDs
   useEffect(() => {
     fetch('http://localhost:3000/auth/users')
       .then(res => res.json())
-      .then(data => setContacts(data))
+      .then(data => {
+        setContacts(data);
+        // Si c'est un employé, sélectionner le premier client par défaut
+        if (user && user.role !== 'CLIENT') {
+          const clients = data.filter((c: any) => c.role === 'CLIENT');
+          if (clients.length > 0) setSelectedClientId(clients[0].id);
+        }
+      })
       .catch(err => console.error(err));
-  }, []);
+  }, [user]);
 
   const getReceiverId = () => {
     if (!user) return undefined;
     if (user.role === 'CLIENT') {
-      // Le client parle au conseiller
       const conseiller = contacts.find(c => c.role === 'CONSEILLER');
       return conseiller?.id;
     } else {
-      // Le conseiller parle au client (pour la démo on prend le premier client)
-      const client = contacts.find(c => c.role === 'CLIENT');
-      return client?.id;
+      // Pour les employés, on renvoie le client actuellement sélectionné
+      return selectedClientId || undefined;
     }
   };
 
@@ -62,12 +68,10 @@ export const Chat = () => {
         newSocket.emit('join_group_chat', user.role);
       }
       
-      // ASTUCE : Si c'est le conseiller, il doit aussi rejoindre la room du client pour voir ses messages !
-      // Dans une vraie application, le conseiller écouterait sur sa propre room, et le client enverrait vers la room du conseiller.
-      // Ici, on fait rejoindre le conseiller à la room du client pour que la démo fonctionne bidirectionnellement
-      if (user.role === 'CONSEILLER') {
-         const client = contacts.find(c => c.role === 'CLIENT');
-         if (client) newSocket.emit('join_private', client.id);
+      // Le conseiller et directeur doivent écouter tous les clients
+      if (user.role !== 'CLIENT') {
+         const clients = contacts.filter(c => c.role === 'CLIENT');
+         clients.forEach(client => newSocket.emit('join_private', client.id));
       }
     });
 
@@ -101,11 +105,9 @@ export const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typingUsers]);
 
-  // Si l'utilisateur est un directeur, on le force sur l'onglet GROUPE car il n'a pas de chat privé
+  // On enlève le forçage sur l'onglet GROUPE pour le directeur car il a maintenant le droit d'écrire en privé
   useEffect(() => {
-    if (user?.role === 'DIRECTEUR') {
-      setChatType('GROUP');
-    }
+    // Si l'admin se connecte, il peut rester sur l'onglet par défaut (PRIVATE ou GROUP)
   }, [user]);
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,10 +156,22 @@ export const Chat = () => {
     setCurrentMessage('');
   };
 
-  // Filtrer les messages à afficher selon l'onglet
-  const displayedMessages = messages.filter(m => 
-    chatType === 'GROUP' ? m.receiverId === null : m.receiverId !== null
-  );
+  // Filtrer les messages à afficher selon l'onglet ET le client sélectionné
+  const displayedMessages = messages.filter(m => {
+    if (chatType === 'GROUP') {
+      return m.receiverId === null; // Messages de groupe
+    } else {
+      if (m.receiverId === null) return false; // Ignorer les messages de groupe
+      
+      // Si on est client, on voit tout notre historique privé
+      if (user?.role === 'CLIENT') return true;
+      
+      // Si on est employé, on ne voit que les messages échangés avec le client SÉLECTIONNÉ
+      return m.senderId === selectedClientId || m.receiverId === selectedClientId;
+    }
+  });
+
+  const clientContacts = contacts.filter(c => c.role === 'CLIENT');
 
   return (
     <div className="bg-slate-900 rounded-2xl border border-slate-800 flex flex-col h-full overflow-hidden">
@@ -191,8 +205,36 @@ export const Chat = () => {
         )}
       </div>
 
-      {/* Zone des messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+      {/* Zone principale (Contacts + Messages) */}
+      <div className="flex-1 flex overflow-hidden">
+        
+        {/* Barre latérale des contacts (uniquement pour employés en mode privé) */}
+        {user?.role !== 'CLIENT' && chatType === 'PRIVATE' && (
+          <div className="w-48 bg-slate-950 border-r border-slate-800 flex flex-col overflow-y-auto">
+            <div className="p-3 border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Clients
+            </div>
+            {clientContacts.map(c => (
+              <button
+                key={c.id}
+                onClick={() => setSelectedClientId(c.id)}
+                className={`w-full text-left p-3 text-sm transition-colors border-l-2 ${
+                  selectedClientId === c.id 
+                    ? 'bg-blue-900/20 border-blue-500 text-blue-400' 
+                    : 'border-transparent text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="font-medium truncate">{c.firstName} {c.lastName}</div>
+              </button>
+            ))}
+            {clientContacts.length === 0 && (
+              <div className="p-3 text-xs text-slate-500 italic">Aucun client.</div>
+            )}
+          </div>
+        )}
+
+        {/* Zone des messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-slate-900">
         {displayedMessages.length === 0 ? (
           <div className="text-slate-500 text-sm text-center py-8">
             Envoyez un message pour commencer la discussion.
@@ -241,18 +283,24 @@ export const Chat = () => {
             type="text"
             value={currentMessage}
             onChange={handleTyping}
-            placeholder="Écrivez votre message..."
-            className="flex-1 bg-transparent border-none text-sm text-white focus:outline-none"
+            placeholder={
+              chatType === 'PRIVATE' && user?.role !== 'CLIENT' && !selectedClientId 
+                ? "Sélectionnez un client..." 
+                : "Écrivez votre message..."
+            }
+            disabled={chatType === 'PRIVATE' && user?.role !== 'CLIENT' && !selectedClientId}
+            className="flex-1 bg-transparent border-none text-sm text-white focus:outline-none disabled:opacity-50"
           />
           <button
             type="submit"
-            disabled={!currentMessage.trim()}
+            disabled={!currentMessage.trim() || (chatType === 'PRIVATE' && user?.role !== 'CLIENT' && !selectedClientId)}
             className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors"
           >
             <Send size={16} className="ml-1" />
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 };
