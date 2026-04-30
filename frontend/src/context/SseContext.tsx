@@ -44,31 +44,26 @@ export const SseProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const markAllRead = () => setUnreadCount(0);
   const deleteNews = (id: number) => setNewsList(prev => prev.filter(n => n.id !== id));
 
-  // Hydratation initiale : charger les actualités et notifications depuis la BDD
   useEffect(() => {
     if (!user) return;
 
-    // Charger les actualités existantes
     fetch('http://localhost:3000/sse/news')
       .then(res => res.json())
       .then(data => setNewsList(data))
-      .catch(err => console.error('Erreur chargement news:', err));
+      .catch(err => console.error(err));
 
-    // Charger les notifications existantes de l'utilisateur
     fetch(`http://localhost:3000/sse/notifications/${user.id}`)
       .then(res => res.json())
       .then(data => {
         setNotifications(data);
-        setUnreadCount(data.length); // Toutes non lues au départ
+        setUnreadCount(data.length);
       })
-      .catch(err => console.error('Erreur chargement notifications:', err));
+      .catch(err => console.error(err));
   }, [user]);
 
-  // Connexion SSE pour les événements temps réel
   useEffect(() => {
     if (!user) return;
 
-    // Demande permission push
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
@@ -80,7 +75,6 @@ export const SseProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (data.type === 'NEW_NEWS') {
         setNewsList(prev => {
-          // Éviter les doublons si déjà chargé au démarrage
           if (prev.find(n => n.id === data.payload.id)) return prev;
           return [data.payload as SseNews, ...prev];
         });
@@ -98,7 +92,6 @@ export const SseProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
         setUnreadCount(prev => prev + 1);
 
-        // Web Push Notification
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('Banque AVENIR', { body: notif.content, icon: '/vite.svg' });
         }

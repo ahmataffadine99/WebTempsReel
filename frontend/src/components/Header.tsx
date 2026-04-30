@@ -11,7 +11,7 @@ export const Header = () => {
 
   const handleBellClick = () => {
     markAllRead();
-    setActiveSection('dashboard'); // scroll vers la liste de notifs
+    setActiveSection('dashboard');
   };
 
   return (
@@ -26,15 +26,13 @@ export const Header = () => {
       </div>
 
       <div className="flex items-center gap-6">
-        {/* Cloche avec badge */}
         <button
           onClick={handleBellClick}
           className="relative text-slate-400 hover:text-white transition-colors"
-          title="Notifications"
         >
           <Bell size={20} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 border border-slate-900 animate-pulse">
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 border border-slate-900">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}

@@ -10,16 +10,9 @@ import { AdminPanel } from '../components/AdminPanel';
 import { SseProvider } from '../context/SseContext';
 import { NavProvider, useNav } from '../context/NavContext';
 
-// Composant interne qui utilise le NavContext
 const DashboardContent = () => {
   const { user } = useAuthStore();
   const { activeSection } = useNav();
-
-  // Gestion de la visibilité des sections selon l'onglet actif dans le sidebar
-  const isVisible = (section: string) => {
-    if (activeSection === 'dashboard') return true; // Tout visible par défaut
-    return activeSection === section;
-  };
 
   return (
     <div className="flex h-screen bg-slate-950 font-sans">
@@ -29,14 +22,12 @@ const DashboardContent = () => {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-950 p-6">
           <div className="grid grid-cols-12 gap-6 h-full">
 
-            {/* Colonne gauche : Actualités (visible par clients et en mode dashboard) */}
             <div className={`col-span-3 h-[calc(100vh-8rem)] transition-all ${
               activeSection === 'messages' ? 'hidden' : 'block'
             }`}>
               <NewsFeed />
             </div>
 
-            {/* Colonne centrale : Chat / Messagerie */}
             <div className={`h-[calc(100vh-8rem)] transition-all ${
               activeSection === 'news' ? 'hidden' :
               activeSection === 'messages' ? 'col-span-12' :
@@ -45,7 +36,6 @@ const DashboardContent = () => {
               <Chat />
             </div>
 
-            {/* Colonne droite : Notifications (client) ou Panneau Admin (employés) */}
             <div className={`col-span-3 h-[calc(100vh-8rem)] transition-all ${
               activeSection === 'messages' ? 'hidden' : 'block'
             }`}>

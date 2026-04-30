@@ -4,18 +4,16 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { prisma } from '../prisma';
 
-// Fonction utilitaire pour envoyer un faux email avec Ethereal
 async function sendVerificationEmail(to: string, token: string) {
-  // Création d'un compte de test Ethereal
   const testAccount = await nodemailer.createTestAccount();
 
   const transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
     port: 587,
-    secure: false, // true for 465, false for other ports
+    secure: false,
     auth: {
-      user: testAccount.user, 
-      pass: testAccount.pass, 
+      user: testAccount.user,
+      pass: testAccount.pass,
     },
   });
 
@@ -24,10 +22,10 @@ async function sendVerificationEmail(to: string, token: string) {
   const info = await transporter.sendMail({
     from: '"Banque AVENIR" <no-reply@avenir.fr>',
     to: to,
-    subject: "Confirmez votre inscription à Banque AVENIR",
+    subject: 'Confirmez votre inscription a Banque AVENIR',
     html: `
       <h1>Bienvenue chez Banque AVENIR !</h1>
-      <p>Merci de vous être inscrit. Veuillez cliquer sur le lien ci-dessous pour activer votre compte :</p>
+      <p>Merci de vous etre inscrit. Cliquez sur le lien ci-dessous pour activer votre compte :</p>
       <a href="${verifyUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:5px;">
         Confirmer mon compte
       </a>
@@ -35,23 +33,21 @@ async function sendVerificationEmail(to: string, token: string) {
     `,
   });
 
-  console.log('Message envoyé: %s', info.messageId);
-  // C'est ça la magie d'Ethereal : on affiche l'URL pour voir l'email envoyé !
-  console.log('URL de prévisualisation de l\'email: %s', nodemailer.getTestMessageUrl(info));
+  console.log('Email envoye. URL de previsualisation Ethereal:', nodemailer.getTestMessageUrl(info));
 }
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, firstName, lastName, role } = req.body;
+    const { email, password, firstName, lastName } = req.body;
 
     if (!email || !password || !firstName || !lastName) {
-      res.status(400).json({ error: 'Tous les champs obligatoires doivent être remplis' });
+      res.status(400).json({ error: 'Tous les champs sont obligatoires' });
       return;
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      res.status(400).json({ error: 'Cet email est déjà utilisé' });
+      res.status(400).json({ error: 'Cet email est deja utilise' });
       return;
     }
 
@@ -64,21 +60,20 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         password: hashedPassword,
         firstName,
         lastName,
-        role: role || 'CLIENT', // Par défaut CLIENT
+        role: 'CLIENT',
         isVerified: false,
         verificationToken,
       },
     });
 
-    // Envoi de l'email de vérification
     await sendVerificationEmail(user.email, verificationToken);
 
     res.status(201).json({
-      message: 'Inscription réussie. Veuillez vérifier votre boîte mail pour confirmer votre compte.',
+      message: 'Inscription reussie. Verifiez votre boite mail pour confirmer votre compte.',
     });
   } catch (error) {
-    console.error('Erreur lors de l\'inscription :', error);
-    res.status(500).json({ error: 'Erreur serveur lors de l\'inscription' });
+    console.error('Erreur inscription:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 };
 
@@ -91,27 +86,22 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const user = await prisma.user.findFirst({
-      where: { verificationToken: token },
-    });
+    const user = await prisma.user.findFirst({ where: { verificationToken: token } });
 
     if (!user) {
-      res.status(404).json({ error: 'Token de vérification introuvable ou expiré' });
+      res.status(404).json({ error: 'Token de verification introuvable ou expire' });
       return;
     }
 
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        isVerified: true,
-        verificationToken: null,
-      },
+      data: { isVerified: true, verificationToken: null },
     });
 
-    res.status(200).json({ message: 'Compte vérifié avec succès. Vous pouvez maintenant vous connecter.' });
+    res.status(200).json({ message: 'Compte verifie. Vous pouvez maintenant vous connecter.' });
   } catch (error) {
-    console.error('Erreur lors de la vérification :', error);
-    res.status(500).json({ error: 'Erreur serveur lors de la vérification' });
+    console.error('Erreur verification:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 };
 
@@ -142,7 +132,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     res.status(200).json({
-      message: 'Connexion réussie',
+      message: 'Connexion reussie',
       user: {
         id: user.id,
         email: user.email,
@@ -152,7 +142,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error) {
-    console.error('Erreur lors de la connexion :', error);
-    res.status(500).json({ error: 'Erreur serveur lors de la connexion' });
+    console.error('Erreur connexion:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 };

@@ -3,10 +3,8 @@ import { prisma } from '../prisma';
 
 const router = Router();
 
-// Map des connexions SSE actives (clé = userId)
 export const sseClients: Map<number, Response> = new Map();
 
-// S'abonner au flux SSE
 router.get('/stream', (req: Request, res: Response) => {
   const userId = parseInt(req.query.userId as string);
   if (!userId || isNaN(userId)) {
@@ -26,7 +24,6 @@ router.get('/stream', (req: Request, res: Response) => {
   req.on('close', () => { sseClients.delete(userId); });
 });
 
-// GET toutes les actualités (pour hydratation initiale au chargement)
 router.get('/news', async (req: Request, res: Response) => {
   try {
     const news = await prisma.news.findMany({
@@ -39,7 +36,6 @@ router.get('/news', async (req: Request, res: Response) => {
   }
 });
 
-// POST créer une actualité
 router.post('/news', async (req: Request, res: Response) => {
   const { title, content, authorId } = req.body;
   try {
@@ -57,13 +53,11 @@ router.post('/news', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE supprimer une actualité (Admin/Directeur seulement)
 router.delete('/news/:id', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   try {
     await prisma.news.delete({ where: { id } });
 
-    // Notifier tous les clients connectés de la suppression
     const eventData = `data: ${JSON.stringify({ type: 'DELETE_NEWS', payload: { id } })}\n\n`;
     sseClients.forEach((clientRes) => { clientRes.write(eventData); });
 
@@ -73,7 +67,6 @@ router.delete('/news/:id', async (req: Request, res: Response) => {
   }
 });
 
-// GET notifications d'un utilisateur (hydratation initiale)
 router.get('/notifications/:userId', async (req: Request, res: Response) => {
   const userId = parseInt(req.params.userId);
   try {
@@ -87,7 +80,6 @@ router.get('/notifications/:userId', async (req: Request, res: Response) => {
   }
 });
 
-// POST envoyer une notification ciblée
 router.post('/notifications', async (req: Request, res: Response) => {
   const { content, userId } = req.body;
   try {

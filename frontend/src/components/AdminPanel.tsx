@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSse } from '../context/SseContext';
-import { Send, Megaphone, Bell, UserPlus, ChevronDown } from 'lucide-react';
+import { Send, Megaphone, Bell, UserPlus } from 'lucide-react';
 
 export const AdminPanel = () => {
   const user = useAuthStore((state) => state.user);
@@ -16,7 +16,6 @@ export const AdminPanel = () => {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [allUsers, setAllUsers] = useState<any[]>([]);
 
-  // Création d'employé
   const [empEmail, setEmpEmail] = useState('');
   const [empPassword, setEmpPassword] = useState('');
   const [empFirstName, setEmpFirstName] = useState('');
@@ -42,9 +41,12 @@ export const AdminPanel = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: newsTitle, content: newsContent, authorId: user.id }),
       });
-      setNewsTitle(''); setNewsContent('');
-      alert('Actualité publiée !');
-    } catch { alert('Erreur'); }
+      setNewsTitle('');
+      setNewsContent('');
+      alert('Actualite publiee !');
+    } catch {
+      alert('Erreur');
+    }
   };
 
   const handleSendNotification = async (e: React.FormEvent) => {
@@ -55,14 +57,18 @@ export const AdminPanel = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: notifContent, userId: parseInt(selectedUserId) }),
       });
-      setNotifContent(''); setSelectedUserId('');
-      alert('Notification envoyée !');
-    } catch { alert('Erreur'); }
+      setNotifContent('');
+      setSelectedUserId('');
+      alert('Notification envoyee !');
+    } catch {
+      alert('Erreur');
+    }
   };
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
-    setEmpError(''); setEmpSuccess('');
+    setEmpError('');
+    setEmpSuccess('');
     try {
       const res = await fetch('http://localhost:3000/auth/create-employee', {
         method: 'POST',
@@ -71,13 +77,15 @@ export const AdminPanel = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setEmpSuccess(`Compte créé pour ${empFirstName} ${empLastName} (${empRole})`);
-      setEmpEmail(''); setEmpPassword(''); setEmpFirstName(''); setEmpLastName('');
-      // Rafraîchir la liste des utilisateurs
+      setEmpSuccess(`Compte cree pour ${empFirstName} ${empLastName}`);
+      setEmpEmail('');
+      setEmpPassword('');
+      setEmpFirstName('');
+      setEmpLastName('');
       const users = await fetch('http://localhost:3000/auth/users').then(r => r.json());
       setAllUsers(users.filter((u: any) => u.id !== user?.id));
     } catch (err: any) {
-      setEmpError(err.message || 'Erreur lors de la création');
+      setEmpError(err.message || 'Erreur lors de la creation');
     }
   };
 
@@ -85,7 +93,6 @@ export const AdminPanel = () => {
 
   return (
     <div className="bg-slate-900 rounded-2xl border border-slate-800 flex flex-col h-full overflow-hidden">
-      {/* Onglets */}
       <div className="bg-slate-800/50 border-b border-slate-800 flex">
         <button
           onClick={() => { setActiveTab('notifs'); markAllRead(); }}
@@ -96,7 +103,7 @@ export const AdminPanel = () => {
           <Bell size={14} />
           Notifs
           {unreadCount > 0 && (
-            <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 rounded-full animate-pulse">
+            <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 rounded-full">
               {unreadCount}
             </span>
           )}
@@ -107,9 +114,8 @@ export const AdminPanel = () => {
             activeTab === 'news' ? 'text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-white'
           }`}
         >
-          <Megaphone size={14} /> Actualités
+          <Megaphone size={14} /> Actualites
         </button>
-        {/* Seulement le Directeur peut créer des employés */}
         {user.role === 'DIRECTEUR' && (
           <button
             onClick={() => setActiveTab('employee')}
@@ -117,17 +123,15 @@ export const AdminPanel = () => {
               activeTab === 'employee' ? 'text-amber-400 border-b-2 border-amber-500' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <UserPlus size={14} /> Équipe
+            <UserPlus size={14} /> Equipe
           </button>
         )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
 
-        {/* Onglet Notifications */}
         {activeTab === 'notifs' && (
           <div className="space-y-4">
-            {/* Formulaire d'envoi */}
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
               <h3 className="text-xs font-semibold text-slate-300 mb-3 flex items-center gap-2">
                 <Send size={12} className="text-purple-400" /> Envoyer une notification
@@ -159,9 +163,8 @@ export const AdminPanel = () => {
                 </button>
               </form>
             </div>
-            {/* Liste des notifications reçues */}
             <div>
-              <p className="text-xs text-slate-500 mb-2">Mes notifications reçues :</p>
+              <p className="text-xs text-slate-500 mb-2">Mes notifications recues :</p>
               {notifications.length === 0 ? (
                 <p className="text-slate-600 text-xs italic">Aucune.</p>
               ) : (
@@ -178,11 +181,10 @@ export const AdminPanel = () => {
           </div>
         )}
 
-        {/* Onglet Actualités */}
         {activeTab === 'news' && (
           <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
             <h3 className="text-xs font-semibold text-slate-300 mb-3 flex items-center gap-2">
-              <Megaphone size={12} className="text-blue-400" /> Publier une Actualité
+              <Megaphone size={12} className="text-blue-400" /> Publier une actualite
             </h3>
             <form onSubmit={handlePublishNews} className="space-y-2">
               <input
@@ -202,23 +204,22 @@ export const AdminPanel = () => {
                 required
               />
               <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
-                <Send size={12} /> Publier pour tous les clients
+                <Send size={12} /> Publier
               </button>
             </form>
           </div>
         )}
 
-        {/* Onglet Équipe (Directeur seulement) */}
         {activeTab === 'employee' && user.role === 'DIRECTEUR' && (
           <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
             <h3 className="text-xs font-semibold text-slate-300 mb-3 flex items-center gap-2">
-              <UserPlus size={12} className="text-amber-400" /> Créer un compte employé
+              <UserPlus size={12} className="text-amber-400" /> Creer un compte employe
             </h3>
             {empError && <div className="bg-red-900/30 border border-red-700/50 text-red-400 text-xs p-2 rounded-lg mb-3">{empError}</div>}
-            {empSuccess && <div className="bg-green-900/30 border border-green-700/50 text-green-400 text-xs p-2 rounded-lg mb-3">✓ {empSuccess}</div>}
+            {empSuccess && <div className="bg-green-900/30 border border-green-700/50 text-green-400 text-xs p-2 rounded-lg mb-3">{empSuccess}</div>}
             <form onSubmit={handleCreateEmployee} className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
-                <input type="text" value={empFirstName} onChange={e => setEmpFirstName(e.target.value)} placeholder="Prénom" className="bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500" required />
+                <input type="text" value={empFirstName} onChange={e => setEmpFirstName(e.target.value)} placeholder="Prenom" className="bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500" required />
                 <input type="text" value={empLastName} onChange={e => setEmpLastName(e.target.value)} placeholder="Nom" className="bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500" required />
               </div>
               <input type="email" value={empEmail} onChange={e => setEmpEmail(e.target.value)} placeholder="Email" className="w-full bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500" required />
@@ -228,7 +229,7 @@ export const AdminPanel = () => {
                 <option value="DIRECTEUR">Directeur</option>
               </select>
               <button type="submit" className="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
-                <UserPlus size={12} /> Créer le compte
+                <UserPlus size={12} /> Creer le compte
               </button>
             </form>
           </div>

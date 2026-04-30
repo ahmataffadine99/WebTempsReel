@@ -10,13 +10,13 @@ export const Sidebar = () => {
   const navItems = [
     { id: 'dashboard' as const, label: 'Tableau de bord', icon: Home },
     { id: 'messages' as const, label: 'Messagerie', icon: MessageSquare },
-    { id: 'news' as const, label: 'Actualités', icon: Newspaper },
+    { id: 'news' as const, label: 'Actualites', icon: Newspaper },
   ];
 
   return (
     <div className="w-64 bg-slate-900 border-r border-slate-800 h-screen flex flex-col">
       <div className="p-6 flex items-center gap-3 border-b border-slate-800">
-        <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
           <Building2 size={24} className="text-white" />
         </div>
         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
@@ -47,7 +47,7 @@ export const Sidebar = () => {
           className="flex items-center gap-3 px-4 py-3 w-full text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-all"
         >
           <LogOut size={20} />
-          <span className="font-medium">Déconnexion</span>
+          <span className="font-medium">Deconnexion</span>
         </button>
       </div>
     </div>

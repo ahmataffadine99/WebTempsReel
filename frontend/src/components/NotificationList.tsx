@@ -21,7 +21,7 @@ export const NotificationList = () => {
         <Bell size={20} className="text-purple-400" />
         <h2 className="text-lg font-semibold text-white">Notifications</h2>
         {unreadCount > 0 && (
-          <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-auto animate-pulse">
+          <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-auto">
             {unreadCount}
           </span>
         )}
@@ -34,7 +34,7 @@ export const NotificationList = () => {
           notifications.map((notif) => (
             <div
               key={notif.id}
-              className="bg-purple-900/20 border border-purple-800/50 p-3 rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.07)]"
+              className="bg-purple-900/20 border border-purple-800/50 p-3 rounded-xl"
             >
               <p className="text-sm text-slate-200">{notif.content}</p>
               <span className="text-xs text-slate-500 mt-2 block">
