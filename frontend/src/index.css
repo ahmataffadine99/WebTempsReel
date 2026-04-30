@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3b82f6; /* Blue */
+  --color-primary-dark: #1d4ed8;
+  --color-secondary: #10b981; /* Green */
+  --color-dark-bg: #0f172a; /* Slate 900 */
+  --color-dark-card: #1e293b; /* Slate 800 */
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: var(--color-dark-bg);
+  color: #f8fafc;
+}
