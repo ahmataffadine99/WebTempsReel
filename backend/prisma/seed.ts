@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
+import { prisma } from '../src/prisma';
 
 async function main() {
   console.log('Début de la génération des fixtures...');
