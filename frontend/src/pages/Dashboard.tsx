@@ -5,6 +5,7 @@ import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { NewsFeed } from '../components/NewsFeed';
 import { NotificationList } from '../components/NotificationList';
+import { Chat } from '../components/Chat';
 
 export const Dashboard = () => {
   const { isAuthenticated } = useAuthStore();
@@ -26,11 +27,8 @@ export const Dashboard = () => {
             </div>
 
             {/* Zone pour le Chat (WebSockets) */}
-            <div className="col-span-6 bg-slate-900 rounded-2xl border border-slate-800 p-4 flex flex-col h-[calc(100vh-8rem)]">
-              <h2 className="text-lg font-semibold text-white mb-4">Messages</h2>
-              <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
-                En attente de connexion WebSockets...
-              </div>
+            <div className="col-span-6 h-[calc(100vh-8rem)]">
+              <Chat />
             </div>
 
             {/* Zone pour les Notifications (SSE) */}
