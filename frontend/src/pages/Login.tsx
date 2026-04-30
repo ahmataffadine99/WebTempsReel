@@ -101,17 +101,25 @@ export const Login = () => {
           )}
           {successMsg && (
             <div className="bg-green-500/10 border border-green-500/50 text-green-400 p-4 rounded-lg mb-6 text-sm text-center">
-              <p className="font-semibold mb-1">Inscription réussie ! 🎉</p>
-              <p>{successMsg}</p>
-              <p className="mt-2 text-xs opacity-80">Vérifiez les logs du backend pour le lien de confirmation.</p>
+              <p className="font-semibold mb-2">Inscription reussie !</p>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Un email de confirmation a ete genere. Pour valider votre compte, lancez la commande suivante dans votre terminal :
+              </p>
+              <code className="block mt-2 mb-2 bg-slate-900 text-blue-300 text-xs px-3 py-2 rounded-lg text-left">
+                docker compose logs backend
+              </code>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Copiez l'URL <span className="text-blue-400">ethereal.email</span> affichee dans les logs, ouvrez-la dans votre navigateur, puis cliquez sur "Confirmer mon compte".
+              </p>
               <button
                 onClick={() => switchMode('login')}
                 className="mt-3 inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors"
               >
-                Se connecter maintenant <ChevronRight size={12} />
+                Aller a la connexion <ChevronRight size={12} />
               </button>
             </div>
           )}
+
 
           {/* FORMULAIRE LOGIN */}
           {mode === 'login' && (
