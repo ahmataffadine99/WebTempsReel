@@ -57,7 +57,7 @@ export const Login = () => {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erreur lors de l\'inscription');
+      if (!res.ok) throw new Error(data.error || "Erreur lors de l'inscription");
       setSuccessMsg(data.message);
       setRegEmail(''); setRegPassword(''); setRegFirstName(''); setRegLastName('');
     } catch (err: any) {
@@ -86,64 +86,36 @@ export const Login = () => {
             Banque AVENIR
           </h1>
           <p className="text-slate-400 mt-2">
-            {mode === 'login' ? 'Connectez-vous à votre espace' : 'Rejoignez-nous en quelques secondes'}
+            {mode === 'login' ? 'Connectez-vous à votre espace' : 'Créez votre compte client'}
           </p>
-        </div>
-
-        {/* Onglets Switch */}
-        <div className="flex bg-slate-800 p-1 rounded-xl mb-6 border border-slate-700">
-          <button
-            onClick={() => switchMode('login')}
-            className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              mode === 'login'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Se connecter
-          </button>
-          <button
-            onClick={() => switchMode('register')}
-            className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              mode === 'register'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            S'inscrire
-          </button>
         </div>
 
         {/* Carte Formulaire */}
         <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
 
-          {/* Message d'erreur */}
+          {/* Messages */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg mb-6 text-sm text-center">
               {error}
             </div>
           )}
-
-          {/* Message de succès (inscription) */}
           {successMsg && (
             <div className="bg-green-500/10 border border-green-500/50 text-green-400 p-4 rounded-lg mb-6 text-sm text-center">
               <p className="font-semibold mb-1">Inscription réussie ! 🎉</p>
               <p>{successMsg}</p>
-              <p className="mt-2 text-xs opacity-80">
-                Vérifiez les logs du backend pour le lien de confirmation Ethereal.
-              </p>
+              <p className="mt-2 text-xs opacity-80">Vérifiez les logs du backend pour le lien de confirmation.</p>
               <button
                 onClick={() => switchMode('login')}
                 className="mt-3 inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors"
               >
-                Aller à la connexion <ChevronRight size={12} />
+                Se connecter maintenant <ChevronRight size={12} />
               </button>
             </div>
           )}
 
           {/* FORMULAIRE LOGIN */}
           {mode === 'login' && (
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
                 <div className="relative">
@@ -184,6 +156,18 @@ export const Login = () => {
               >
                 Se connecter
               </button>
+
+              {/* Lien S'inscrire discret en bas */}
+              <p className="text-center text-slate-400 text-sm pt-1">
+                Pas encore de compte ?{' '}
+                <button
+                  type="button"
+                  onClick={() => switchMode('register')}
+                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                >
+                  S'inscrire
+                </button>
+              </p>
             </form>
           )}
 
@@ -262,10 +246,22 @@ export const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Création en cours...' : 'Créer mon compte'}
               </button>
+
+              {/* Lien retour Se connecter */}
+              <p className="text-center text-slate-400 text-sm pt-1">
+                Déjà un compte ?{' '}
+                <button
+                  type="button"
+                  onClick={() => switchMode('login')}
+                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                >
+                  Se connecter
+                </button>
+              </p>
             </form>
           )}
         </div>
@@ -273,4 +269,3 @@ export const Login = () => {
     </div>
   );
 };
-
