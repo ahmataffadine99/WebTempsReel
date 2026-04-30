@@ -7,12 +7,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import authRoutes from './routes/auth';
+import sseRoutes from './routes/sse';
+import { initChatSockets } from './sockets/chat';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.use('/auth', authRoutes);
+app.use('/sse', sseRoutes);
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -22,17 +25,11 @@ const io = new Server(httpServer, {
   }
 });
 
+// Initialiser la gestion des WebSockets
+initChatSockets(io);
+
 app.get('/', (req, res) => {
   res.send('Banque AVENIR API en cours d\'exécution...');
-});
-
-// Setup basique de Socket.io
-io.on('connection', (socket) => {
-  console.log('Un utilisateur s\'est connecté :', socket.id);
-  
-  socket.on('disconnect', () => {
-    console.log('Un utilisateur s\'est déconnecté :', socket.id);
-  });
 });
 
 const PORT = process.env.PORT || 3000;
