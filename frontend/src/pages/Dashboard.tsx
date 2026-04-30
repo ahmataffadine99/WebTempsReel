@@ -1,18 +1,45 @@
 import React from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Navigate } from 'react-router-dom';
+import { Sidebar } from '../components/Sidebar';
+import { Header } from '../components/Header';
 
 export const Dashboard = () => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
-      <h1 className="text-3xl font-bold text-blue-400">Banque AVENIR - Dashboard</h1>
-      <p className="mt-4 text-slate-300">Bienvenue, {user?.firstName} {user?.lastName} ({user?.role})</p>
+    <div className="flex h-screen bg-slate-950 font-sans">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-950 p-6">
+          <div className="grid grid-cols-12 gap-6 h-full">
+            {/* Zone pour le Flux d'actualités (SSE) */}
+            <div className="col-span-3 bg-slate-900 rounded-2xl border border-slate-800 p-4">
+              <h2 className="text-lg font-semibold text-white mb-4">Actualités</h2>
+              <div className="text-slate-500 text-sm">En attente de connexion SSE...</div>
+            </div>
+
+            {/* Zone pour le Chat (WebSockets) */}
+            <div className="col-span-6 bg-slate-900 rounded-2xl border border-slate-800 p-4 flex flex-col">
+              <h2 className="text-lg font-semibold text-white mb-4">Messages</h2>
+              <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
+                En attente de connexion WebSockets...
+              </div>
+            </div>
+
+            {/* Zone pour les Notifications (SSE) */}
+            <div className="col-span-3 bg-slate-900 rounded-2xl border border-slate-800 p-4">
+              <h2 className="text-lg font-semibold text-white mb-4">Notifications</h2>
+              <div className="text-slate-500 text-sm">En attente de connexion SSE...</div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
