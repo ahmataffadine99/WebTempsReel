@@ -101,6 +101,13 @@ export const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typingUsers]);
 
+  // Si l'utilisateur est un directeur, on le force sur l'onglet GROUPE car il n'a pas de chat privé
+  useEffect(() => {
+    if (user?.role === 'DIRECTEUR') {
+      setChatType('GROUP');
+    }
+  }, [user]);
+
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentMessage(e.target.value);
 
@@ -221,7 +228,7 @@ export const Chat = () => {
         {/* Indicateur de frappe */}
         {typingUsers.length > 0 && (
           <div className="text-slate-500 text-xs italic ml-2">
-            {typingUsers.join(', ')} écrit...
+            En train d'écrire...
           </div>
         )}
         <div ref={messagesEndRef} />

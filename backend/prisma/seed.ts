@@ -17,18 +17,18 @@ async function main() {
     data: {
       email: 'client@avenir.fr',
       password: hashedPassword,
-      firstName: 'Jean',
-      lastName: 'Dupont',
+      firstName: 'AHMAT',
+      lastName: 'Abdoulaye',
       role: 'CLIENT',
     },
-  });
+  })
 
   const conseiller = await prisma.user.create({
     data: {
       email: 'conseiller@avenir.fr',
       password: hashedPassword,
-      firstName: 'Alice',
-      lastName: 'Martin',
+      firstName: 'ElWARDI',
+      lastName: 'Abdelrazakh',
       role: 'CONSEILLER',
     },
   });
@@ -37,8 +37,8 @@ async function main() {
     data: {
       email: 'directeur@avenir.fr',
       password: hashedPassword,
-      firstName: 'Paul',
-      lastName: 'Dubois',
+      firstName: 'ZAKARIA',
+      lastName: 'Maarifi',
       role: 'DIRECTEUR',
     },
   });
