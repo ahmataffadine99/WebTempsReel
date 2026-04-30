@@ -1,9 +1,17 @@
 import React from 'react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useNav } from '../context/NavContext';
 import { Building2, Home, MessageSquare, Newspaper, LogOut } from 'lucide-react';
 
 export const Sidebar = () => {
   const logout = useAuthStore((state) => state.logout);
+  const { activeSection, setActiveSection } = useNav();
+
+  const navItems = [
+    { id: 'dashboard' as const, label: 'Tableau de bord', icon: Home },
+    { id: 'messages' as const, label: 'Messagerie', icon: MessageSquare },
+    { id: 'news' as const, label: 'Actualités', icon: Newspaper },
+  ];
 
   return (
     <div className="w-64 bg-slate-900 border-r border-slate-800 h-screen flex flex-col">
@@ -17,22 +25,24 @@ export const Sidebar = () => {
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
-        <a href="#" className="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 rounded-xl transition-all">
-          <Home size={20} />
-          <span className="font-medium">Tableau de bord</span>
-        </a>
-        <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-xl transition-all">
-          <MessageSquare size={20} />
-          <span className="font-medium">Messagerie</span>
-        </a>
-        <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-xl transition-all">
-          <Newspaper size={20} />
-          <span className="font-medium">Actualités</span>
-        </a>
+        {navItems.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveSection(id)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+              activeSection === id
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+            }`}
+          >
+            <Icon size={20} />
+            <span className="font-medium">{label}</span>
+          </button>
+        ))}
       </nav>
 
       <div className="p-4 border-t border-slate-800">
-        <button 
+        <button
           onClick={logout}
           className="flex items-center gap-3 px-4 py-3 w-full text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-all"
         >

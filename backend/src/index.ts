@@ -8,6 +8,7 @@ dotenv.config();
 
 import authRoutes from './routes/auth';
 import sseRoutes from './routes/sse';
+import messageRoutes from './routes/messages';
 import { initChatSockets } from './sockets/chat';
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/sse', sseRoutes);
+app.use('/messages', messageRoutes);
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {

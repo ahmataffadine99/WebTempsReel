@@ -7,13 +7,19 @@ import { NewsFeed } from '../components/NewsFeed';
 import { NotificationList } from '../components/NotificationList';
 import { Chat } from '../components/Chat';
 import { AdminPanel } from '../components/AdminPanel';
+import { SseProvider } from '../context/SseContext';
+import { NavProvider, useNav } from '../context/NavContext';
 
-export const Dashboard = () => {
-  const { isAuthenticated, user } = useAuthStore();
+// Composant interne qui utilise le NavContext
+const DashboardContent = () => {
+  const { user } = useAuthStore();
+  const { activeSection } = useNav();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // Gestion de la visibilité des sections selon l'onglet actif dans le sidebar
+  const isVisible = (section: string) => {
+    if (activeSection === 'dashboard') return true; // Tout visible par défaut
+    return activeSection === section;
+  };
 
   return (
     <div className="flex h-screen bg-slate-950 font-sans">
@@ -22,23 +28,49 @@ export const Dashboard = () => {
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-950 p-6">
           <div className="grid grid-cols-12 gap-6 h-full">
-            {/* Zone pour le Flux d'actualités (SSE) */}
-            <div className="col-span-3 h-[calc(100vh-8rem)]">
+
+            {/* Colonne gauche : Actualités (visible par clients et en mode dashboard) */}
+            <div className={`col-span-3 h-[calc(100vh-8rem)] transition-all ${
+              activeSection === 'messages' ? 'hidden' : 'block'
+            }`}>
               <NewsFeed />
             </div>
 
-            {/* Zone pour le Chat (WebSockets) */}
-            <div className="col-span-6 h-[calc(100vh-8rem)]">
+            {/* Colonne centrale : Chat / Messagerie */}
+            <div className={`h-[calc(100vh-8rem)] transition-all ${
+              activeSection === 'news' ? 'hidden' :
+              activeSection === 'messages' ? 'col-span-12' :
+              'col-span-6'
+            }`}>
               <Chat />
             </div>
 
-            {/* Zone pour les Notifications ou le Panneau d'administration */}
-            <div className="col-span-3 h-[calc(100vh-8rem)]">
+            {/* Colonne droite : Notifications (client) ou Panneau Admin (employés) */}
+            <div className={`col-span-3 h-[calc(100vh-8rem)] transition-all ${
+              activeSection === 'messages' ? 'hidden' : 'block'
+            }`}>
               {user?.role === 'CLIENT' ? <NotificationList /> : <AdminPanel />}
             </div>
+
           </div>
         </main>
       </div>
     </div>
+  );
+};
+
+export const Dashboard = () => {
+  const { isAuthenticated } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <NavProvider>
+      <SseProvider>
+        <DashboardContent />
+      </SseProvider>
+    </NavProvider>
   );
 };
