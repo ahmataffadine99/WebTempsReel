@@ -21,9 +21,31 @@ export const Chat = () => {
   
   const [chatType, setChatType] = useState<'PRIVATE' | 'GROUP'>('PRIVATE');
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [contacts, setContacts] = useState<any[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Récupérer la liste des utilisateurs pour trouver les vrais IDs (au lieu de coder en dur 1 et 2)
+  useEffect(() => {
+    fetch('http://localhost:3000/auth/users')
+      .then(res => res.json())
+      .then(data => setContacts(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  const getReceiverId = () => {
+    if (!user) return undefined;
+    if (user.role === 'CLIENT') {
+      // Le client parle au conseiller
+      const conseiller = contacts.find(c => c.role === 'CONSEILLER');
+      return conseiller?.id;
+    } else {
+      // Le conseiller parle au client (pour la démo on prend le premier client)
+      const client = contacts.find(c => c.role === 'CLIENT');
+      return client?.id;
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -32,12 +54,20 @@ export const Chat = () => {
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
-      // Le client rejoint sa room personnelle
+      // Le client (ou l'employé) rejoint sa propre room personnelle
       newSocket.emit('join_private', user.id);
       
       // Si c'est un employé, il rejoint le chat de groupe
       if (user.role === 'CONSEILLER' || user.role === 'DIRECTEUR') {
         newSocket.emit('join_group_chat', user.role);
+      }
+      
+      // ASTUCE : Si c'est le conseiller, il doit aussi rejoindre la room du client pour voir ses messages !
+      // Dans une vraie application, le conseiller écouterait sur sa propre room, et le client enverrait vers la room du conseiller.
+      // Ici, on fait rejoindre le conseiller à la room du client pour que la démo fonctionne bidirectionnellement
+      if (user.role === 'CONSEILLER') {
+         const client = contacts.find(c => c.role === 'CLIENT');
+         if (client) newSocket.emit('join_private', client.id);
       }
     });
 
@@ -58,13 +88,13 @@ export const Chat = () => {
     });
 
     newSocket.on('user_stop_typing', ({ isGroup }) => {
-      setTypingUsers([]); // Simplification : on vide pour l'instant
+      setTypingUsers([]); 
     });
 
     return () => {
       newSocket.disconnect();
     };
-  }, [user, chatType]);
+  }, [user, chatType, contacts]);
 
   // Scroll automatique vers le bas
   useEffect(() => {
@@ -75,9 +105,7 @@ export const Chat = () => {
     setCurrentMessage(e.target.value);
 
     if (socket && user) {
-      // Pour l'exercice, on part du principe que le destinataire ID 2 est le conseiller.
-      // Dans une vraie application, l'utilisateur choisirait son destinataire.
-      const receiverId = user.role === 'CLIENT' ? 2 : 1; 
+      const receiverId = getReceiverId();
 
       socket.emit('typing', {
         senderName: `${user.firstName}`,
@@ -101,8 +129,9 @@ export const Chat = () => {
     if (!currentMessage.trim() || !socket || !user) return;
 
     if (chatType === 'PRIVATE') {
-      // Le client parle au conseiller (ID 2), le conseiller parle au client (ID 1)
-      const receiverId = user.role === 'CLIENT' ? 2 : 1;
+      const receiverId = getReceiverId();
+      if (!receiverId) return; // Si on n'a pas trouvé le destinataire
+
       socket.emit('send_private_message', {
         senderId: user.id,
         receiverId,
