@@ -47,6 +47,11 @@ export const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const chatTypeRef = useRef<'PRIVATE' | 'GROUP'>(chatType);
+  const selectedPartnerIdRef = useRef<number | null>(selectedPartnerId);
+
+  useEffect(() => { chatTypeRef.current = chatType; }, [chatType]);
+  useEffect(() => { selectedPartnerIdRef.current = selectedPartnerId; }, [selectedPartnerId]);
   const applyContacts = (data: Contact[]) => {
     setContacts(data);
     setSelectedPartnerId(prev => {
@@ -94,6 +99,9 @@ export const Chat = () => {
     });
 
     newSocket.on('receive_private_message', (msg: Message) => {
+      if (chatTypeRef.current !== 'PRIVATE') return;
+      const partnerId = selectedPartnerIdRef.current;
+      if (msg.senderId !== partnerId && msg.receiverId !== partnerId) return;
       setMessages(prev => {
         if (prev.find(m => m.id === msg.id)) return prev;
         return [...prev, msg];
@@ -101,6 +109,7 @@ export const Chat = () => {
     });
 
     newSocket.on('receive_group_message', (msg: Message) => {
+      if (chatTypeRef.current !== 'GROUP') return;
       setMessages(prev => {
         if (prev.find(m => m.id === msg.id)) return prev;
         return [...prev, msg];
