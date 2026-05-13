@@ -6,18 +6,18 @@ import { Building2, Mail, Lock, User as UserIcon, ChevronRight } from 'lucide-re
 export const Login = () => {
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
-  // Champs Login
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // Champs Register
   const [regFirstName, setRegFirstName] = useState('');
   const [regLastName, setRegLastName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
 
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
@@ -77,8 +77,9 @@ export const Login = () => {
     <div className="flex min-h-screen items-center justify-center bg-slate-900 text-white p-4">
       <div className="w-full max-w-md">
 
-        {/* Logo + Titre */}
+
         <div className="flex flex-col items-center mb-8">
+
           <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">
             <Building2 size={32} className="text-white" />
           </div>
@@ -90,27 +91,23 @@ export const Login = () => {
           </p>
         </div>
 
-        {/* Carte Formulaire */}
+
         <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
 
-          {/* Messages */}
+
+
           {error && (
+
             <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg mb-6 text-sm text-center">
               {error}
             </div>
           )}
           {successMsg && (
             <div className="bg-green-500/10 border border-green-500/50 text-green-400 p-4 rounded-lg mb-6 text-sm text-center">
-              <p className="font-semibold mb-2">Inscription reussie !</p>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Un email de confirmation a ete genere. Pour valider votre compte, lancez la commande suivante dans votre terminal :
-              </p>
-              <code className="block mt-2 mb-2 bg-slate-900 text-blue-300 text-xs px-3 py-2 rounded-lg text-left">
-                docker compose logs backend
-              </code>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Copiez l'URL <span className="text-blue-400">ethereal.email</span> affichee dans les logs, ouvrez-la dans votre navigateur, puis cliquez sur "Confirmer mon compte".
-              </p>
+              <p className="font-semibold mb-1">Inscription réussie !</p>
+
+              <p>{successMsg}</p>
+              <p className="mt-2 text-xs opacity-80">Vérifiez les logs du backend pour le lien de confirmation.</p>
               <button
                 onClick={() => switchMode('login')}
                 className="mt-3 inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors"
@@ -120,9 +117,8 @@ export const Login = () => {
             </div>
           )}
 
-
-          {/* FORMULAIRE LOGIN */}
           {mode === 'login' && (
+
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
@@ -165,8 +161,9 @@ export const Login = () => {
                 Se connecter
               </button>
 
-              {/* Lien S'inscrire discret en bas */}
+
               <p className="text-center text-slate-400 text-sm pt-1">
+
                 Pas encore de compte ?{' '}
                 <button
                   type="button"
@@ -179,8 +176,9 @@ export const Login = () => {
             </form>
           )}
 
-          {/* FORMULAIRE REGISTER */}
+
           {mode === 'register' && (
+
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -259,8 +257,9 @@ export const Login = () => {
                 {isLoading ? 'Création en cours...' : 'Créer mon compte'}
               </button>
 
-              {/* Lien retour Se connecter */}
+
               <p className="text-center text-slate-400 text-sm pt-1">
+
                 Déjà un compte ?{' '}
                 <button
                   type="button"

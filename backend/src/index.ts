@@ -27,8 +27,9 @@ const io = new Server(httpServer, {
   }
 });
 
-// Initialiser la gestion des WebSockets
+
 initChatSockets(io);
+
 
 app.get('/', (req, res) => {
   res.send('Banque AVENIR API en cours d\'exécution...');

@@ -8,7 +8,6 @@ const getPairRoom = (id1: number, id2: number): string => {
 
 export const initChatSockets = (io: Server) => {
   io.on('connection', (socket: Socket) => {
-
     socket.on('join_private', (payload: { myId: number; partnerId: number }) => {
       const roomName = getPairRoom(payload.myId, payload.partnerId);
       socket.join(roomName);

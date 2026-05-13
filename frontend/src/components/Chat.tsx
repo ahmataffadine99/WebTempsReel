@@ -48,11 +48,9 @@ export const Chat = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
-  // Charger la liste des contacts (avec polling toutes les 10s pour les nouveaux inscrits)
-  useEffect(() => {
-    if (!user) return;
 
     const fetchContacts = () => {
+
       fetch('http://localhost:3000/auth/users')
         .then(res => res.json())
         .then(data => {
@@ -77,8 +75,9 @@ export const Chat = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  // Connexion Socket.io
+
   useEffect(() => {
+
     if (!user || contacts.length === 0) return;
 
     // Éviter de créer une nouvelle socket si elle existe déjà
@@ -126,8 +125,9 @@ export const Chat = () => {
     };
   }, [user, contacts.length > 0]);
 
-  // Charger l'historique des messages quand on change de partenaire ou de mode
+
   useEffect(() => {
+
     if (!user) return;
 
     if (chatType === 'GROUP') {
@@ -143,8 +143,9 @@ export const Chat = () => {
     }
   }, [chatType, selectedPartnerId, user]);
 
-  // Scroll automatique
+
   useEffect(() => {
+
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typingUsers]);
 
@@ -185,8 +186,9 @@ export const Chat = () => {
     setCurrentMessage('');
   };
 
-  // Contacts selon le rôle
+
   const privateContacts: Contact[] = user?.role === 'CLIENT'
+
     ? contacts.filter(c => c.role === 'CONSEILLER' || c.role === 'DIRECTEUR') // Client voit tous les employés
     : contacts.filter(c => c.id !== user?.id); // Employés voient tout le monde
 
@@ -199,8 +201,9 @@ export const Chat = () => {
           <h2 className="text-lg font-semibold text-white">Messagerie</h2>
         </div>
 
-        {/* Onglets uniquement pour les employés */}
+
         {user?.role !== 'CLIENT' && (
+
           <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
             <button
               onClick={() => setChatType('PRIVATE')}
