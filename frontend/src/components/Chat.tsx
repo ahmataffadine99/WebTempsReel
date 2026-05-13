@@ -47,10 +47,10 @@ export const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const socketRef = useRef<Socket | null>(null);
-
+  useEffect(() => {
+    if (!user) return;
 
     const fetchContacts = () => {
-
       fetch('http://localhost:3000/auth/users')
         .then(res => res.json())
         .then(data => {
