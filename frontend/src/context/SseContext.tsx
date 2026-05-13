@@ -14,6 +14,7 @@ export interface SseNotification {
   id: number;
   content: string;
   userId: number;
+  isRead: boolean;
   createdAt: string;
 }
 
@@ -22,7 +23,9 @@ interface SseContextType {
   notifications: SseNotification[];
   unreadCount: number;
   markAllRead: () => void;
+  markAsRead: (id: number) => void;
   deleteNews: (id: number) => void;
+  deleteNotification: (id: number) => void;
 }
 
 const SseContext = createContext<SseContextType>({
@@ -30,7 +33,9 @@ const SseContext = createContext<SseContextType>({
   notifications: [],
   unreadCount: 0,
   markAllRead: () => {},
+  markAsRead: () => {},
   deleteNews: () => {},
+  deleteNotification: () => {},
 });
 
 export const useSse = () => useContext(SseContext);
@@ -41,8 +46,33 @@ export const SseProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [notifications, setNotifications] = useState<SseNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const markAllRead = () => setUnreadCount(0);
+  const markAllRead = async () => {
+    const unread = notifications.filter(n => !n.isRead);
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+    await Promise.all(
+      unread.map(n =>
+        fetch(`http://localhost:3000/sse/notifications/${n.id}/read`, { method: 'PATCH' }).catch(() => {})
+      )
+    );
+  };
+
+  const markAsRead = async (id: number) => {
+    setNotifications(prev =>
+      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    await fetch(`http://localhost:3000/sse/notifications/${id}/read`, { method: 'PATCH' }).catch(() => {});
+  };
+
   const deleteNews = (id: number) => setNewsList(prev => prev.filter(n => n.id !== id));
+
+  const deleteNotification = async (id: number) => {
+    const notif = notifications.find(n => n.id === id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    if (notif && !notif.isRead) setUnreadCount(prev => Math.max(0, prev - 1));
+    await fetch(`http://localhost:3000/sse/notifications/${id}`, { method: 'DELETE' }).catch(() => {});
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -54,9 +84,9 @@ export const SseProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     fetch(`http://localhost:3000/sse/notifications/${user.id}`)
       .then(res => res.json())
-      .then(data => {
+      .then((data: SseNotification[]) => {
         setNotifications(data);
-        setUnreadCount(data.length);
+        setUnreadCount(data.filter(n => !n.isRead).length);
       })
       .catch(err => console.error(err));
   }, [user]);
@@ -104,7 +134,7 @@ export const SseProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [user]);
 
   return (
-    <SseContext.Provider value={{ newsList, notifications, unreadCount, markAllRead, deleteNews }}>
+    <SseContext.Provider value={{ newsList, notifications, unreadCount, markAllRead, markAsRead, deleteNews, deleteNotification }}>
       {children}
     </SseContext.Provider>
   );

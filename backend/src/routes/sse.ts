@@ -98,4 +98,27 @@ router.post('/notifications', async (req: Request, res: Response) => {
   }
 });
 
+router.patch('/notifications/:id/read', async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
+  try {
+    const notification = await prisma.notification.update({
+      where: { id },
+      data: { isRead: true },
+    });
+    res.json(notification);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors du marquage comme lu' });
+  }
+});
+
+router.delete('/notifications/:id', async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
+  try {
+    await prisma.notification.delete({ where: { id } });
+    res.status(200).json({ message: 'Notification supprimée' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors de la suppression de la notification' });
+  }
+});
+
 export default router;
