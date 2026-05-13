@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { prisma } from '../prisma';
+import { getIO } from '../socket';
 
 async function sendVerificationEmail(to: string, token: string) {
   const testAccount = await nodemailer.createTestAccount();
@@ -97,6 +98,12 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
       where: { id: user.id },
       data: { isVerified: true, verificationToken: null },
     });
+
+    const updatedUsers = await prisma.user.findMany({
+      where: { isVerified: true },
+      select: { id: true, firstName: true, lastName: true, role: true, email: true },
+    });
+    getIO().emit('users_updated', updatedUsers);
 
     res.status(200).json({ message: 'Compte verifie. Vous pouvez maintenant vous connecter.' });
   } catch (error) {

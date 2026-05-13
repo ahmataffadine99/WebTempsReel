@@ -47,40 +47,23 @@ export const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const applyContacts = (data: Contact[]) => {
+    setContacts(data);
+    setSelectedPartnerId(prev => {
+      if (prev !== null) return prev;
+      if (user?.role === 'CLIENT') {
+        const emp = data.find((c: Contact) => c.role === 'CONSEILLER');
+        return emp?.id ?? null;
+      } else {
+        const client = data.find((c: Contact) => c.role === 'CLIENT' && c.id !== user?.id);
+        return client?.id ?? null;
+      }
+    });
+  };
+
+
   useEffect(() => {
     if (!user) return;
-
-    const fetchContacts = () => {
-      fetch('http://localhost:3000/auth/users')
-        .then(res => res.json())
-        .then(data => {
-          setContacts(data);
-          // Sélection par défaut si pas encore sélectionné
-          setSelectedPartnerId(prev => {
-            if (prev !== null) return prev; // déjà sélectionné
-            if (user.role === 'CLIENT') {
-              const emp = data.find((c: Contact) => c.role === 'CONSEILLER');
-              return emp?.id ?? null;
-            } else {
-              const client = data.find((c: Contact) => c.role === 'CLIENT' && c.id !== user.id);
-              return client?.id ?? null;
-            }
-          });
-        })
-        .catch(err => console.error(err));
-    };
-
-    fetchContacts();
-    const interval = setInterval(fetchContacts, 10000); // Rafraîchissement toutes les 10s
-    return () => clearInterval(interval);
-  }, [user]);
-
-
-  useEffect(() => {
-
-    if (!user || contacts.length === 0) return;
-
-    // Éviter de créer une nouvelle socket si elle existe déjà
     if (socketRef.current) return;
 
     const newSocket = io('http://localhost:3000');
@@ -88,20 +71,31 @@ export const Chat = () => {
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
-      // Rejoindre la room paire avec tous les autres utilisateurs
-      const others = contacts.filter(c => c.id !== user.id);
-      others.forEach(partner => {
-        newSocket.emit('join_private', { myId: user.id, partnerId: partner.id });
-      });
-      // Rejoindre le chat de groupe si employé
+      newSocket.emit('request_users');
       if (user.role === 'CONSEILLER' || user.role === 'DIRECTEUR') {
         newSocket.emit('join_group_chat', user.role);
       }
     });
 
+    newSocket.on('users_list', (data: Contact[]) => {
+      applyContacts(data);
+      const others = data.filter(c => c.id !== user.id);
+      others.forEach(partner => {
+        newSocket.emit('join_private', { myId: user.id, partnerId: partner.id });
+      });
+    });
+
+    newSocket.on('users_updated', (data: Contact[]) => {
+      applyContacts(data);
+      const others = data.filter(c => c.id !== user.id);
+      others.forEach(partner => {
+        newSocket.emit('join_private', { myId: user.id, partnerId: partner.id });
+      });
+    });
+
     newSocket.on('receive_private_message', (msg: Message) => {
       setMessages(prev => {
-        if (prev.find(m => m.id === msg.id)) return prev; // éviter doublon
+        if (prev.find(m => m.id === msg.id)) return prev;
         return [...prev, msg];
       });
     });
@@ -113,7 +107,7 @@ export const Chat = () => {
       });
     });
 
-    newSocket.on('user_typing', ({ name, isGroup }: { name: string; isGroup: boolean }) => {
+    newSocket.on('user_typing', ({ name }: { name: string; isGroup: boolean }) => {
       setTypingUsers(prev => prev.includes(name) ? prev : [...prev, name]);
     });
 
@@ -123,7 +117,7 @@ export const Chat = () => {
       newSocket.disconnect();
       socketRef.current = null;
     };
-  }, [user, contacts.length > 0]);
+  }, [user]);
 
 
   useEffect(() => {
@@ -149,24 +143,40 @@ export const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typingUsers]);
 
+  const emitTyping = () => {
+    if (!socket || !user) return;
+    if (chatType === 'PRIVATE' && !selectedPartnerId) return;
+    socket.emit('typing', {
+      senderName: user.firstName,
+      myId: user.id,
+      receiverId: chatType === 'PRIVATE' ? selectedPartnerId : undefined,
+      isGroup: chatType === 'GROUP',
+    });
+  };
+
+  const emitStopTyping = () => {
+    if (!socket || !user) return;
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    socket.emit('stop_typing', {
+      myId: user.id,
+      receiverId: chatType === 'PRIVATE' ? selectedPartnerId : undefined,
+      isGroup: chatType === 'GROUP',
+    });
+  };
+
+  const handleFocus = () => {
+    emitTyping();
+  };
+
+  const handleBlur = () => {
+    emitStopTyping();
+  };
+
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentMessage(e.target.value);
-    if (socket && user && selectedPartnerId) {
-      socket.emit('typing', {
-        senderName: user.firstName,
-        myId: user.id,
-        receiverId: chatType === 'PRIVATE' ? selectedPartnerId : undefined,
-        isGroup: chatType === 'GROUP',
-      });
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => {
-        socket.emit('stop_typing', {
-          myId: user.id,
-          receiverId: chatType === 'PRIVATE' ? selectedPartnerId : undefined,
-          isGroup: chatType === 'GROUP',
-        });
-      }, 1000);
-    }
+    emitTyping();
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(emitStopTyping, 2000);
   };
 
   const sendMessage = (e: React.FormEvent) => {
@@ -230,9 +240,9 @@ export const Chat = () => {
 
         {/* Sidebar contacts (toujours visible en mode Privé) */}
         {chatType === 'PRIVATE' && (
-          <div className="w-44 bg-slate-950 border-r border-slate-800 flex flex-col overflow-y-auto flex-shrink-0">
-            <div className="p-3 border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              {user?.role === 'CLIENT' ? 'Mon Conseiller' : 'Contacts'}
+          <div className="w-24 sm:w-32 lg:w-44 bg-slate-950 border-r border-slate-800 flex flex-col overflow-y-auto flex-shrink-0">
+            <div className="p-2 sm:p-3 border-b border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider truncate">
+              {user?.role === 'CLIENT' ? 'Conseiller' : 'Contacts'}
             </div>
             {privateContacts.length === 0 ? (
               <div className="p-3 text-xs text-slate-500 italic">Aucun contact.</div>
@@ -241,14 +251,14 @@ export const Chat = () => {
                 <button
                   key={c.id}
                   onClick={() => setSelectedPartnerId(c.id)}
-                  className={`w-full text-left p-3 text-sm transition-colors border-l-2 ${
+                  className={`w-full text-left p-2 sm:p-3 text-sm transition-colors border-l-2 ${
                     selectedPartnerId === c.id
                       ? 'bg-blue-900/20 border-blue-500 text-blue-400'
                       : 'border-transparent text-slate-300 hover:bg-slate-800'
                   }`}
                 >
-                  <div className="font-medium truncate">{c.firstName} {c.lastName}</div>
-                  <div className={`text-xs ${ROLE_COLORS[c.role] || 'text-slate-500'}`}>
+                  <div className="font-medium truncate text-xs sm:text-sm">{c.firstName} <span className="hidden sm:inline">{c.lastName}</span></div>
+                  <div className={`text-[10px] sm:text-xs ${ROLE_COLORS[c.role] || 'text-slate-500'}`}>
                     {ROLE_LABELS[c.role] || c.role}
                   </div>
                 </button>
@@ -313,6 +323,8 @@ export const Chat = () => {
             type="text"
             value={currentMessage}
             onChange={handleTyping}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             placeholder={
               chatType === 'PRIVATE' && !selectedPartnerId
                 ? 'Sélectionnez un contact...'

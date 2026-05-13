@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { register, login, verifyEmail } from '../controllers/authController';
 import { prisma } from '../prisma';
 import bcrypt from 'bcrypt';
+import { getIO } from '../socket';
 
 const router = Router();
 
@@ -26,6 +27,13 @@ router.post('/create-employee', async (req, res) => {
       data: { email, password: hashedPassword, firstName, lastName, role, isVerified: true },
       select: { id: true, email: true, firstName: true, lastName: true, role: true },
     });
+
+    const updatedUsers = await prisma.user.findMany({
+      where: { isVerified: true },
+      select: { id: true, firstName: true, lastName: true, role: true, email: true },
+    });
+    getIO().emit('users_updated', updatedUsers);
+
     res.status(201).json({ message: 'Compte employe cree.', user });
   } catch (error) {
     res.status(500).json({ error: 'Erreur serveur' });

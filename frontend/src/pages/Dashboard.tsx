@@ -15,20 +15,32 @@ const DashboardContent = () => {
   const { activeSection } = useNav();
 
   return (
-    <div className="flex h-screen bg-slate-950 font-sans">
+    <div className="flex h-screen bg-slate-950 font-sans overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-950 p-6">
-          <div className="grid grid-cols-12 gap-6 h-full">
 
-            <div className={`col-span-3 h-[calc(100vh-8rem)] transition-all ${
-              activeSection === 'messages' ? 'hidden' : 'block'
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <Header />
+
+        <main className="flex-1 overflow-hidden bg-slate-950">
+
+          <div className="lg:hidden h-full p-3 sm:p-4">
+            {activeSection === 'news' && <NewsFeed />}
+            {activeSection === 'messages' && <Chat />}
+            {activeSection === 'dashboard' && (
+              user?.role === 'CLIENT' ? <NotificationList /> : <AdminPanel />
+            )}
+          </div>
+
+          {/* Desktop (lg+) : grille 3 colonnes */}
+          <div className="hidden lg:grid grid-cols-12 gap-6 h-full p-6">
+
+            <div className={`col-span-3 ${
+              activeSection === 'messages' ? 'hidden' : ''
             }`}>
               <NewsFeed />
             </div>
 
-            <div className={`h-[calc(100vh-8rem)] transition-all ${
+            <div className={`${
               activeSection === 'news' ? 'hidden' :
               activeSection === 'messages' ? 'col-span-12' :
               'col-span-6'
@@ -36,8 +48,8 @@ const DashboardContent = () => {
               <Chat />
             </div>
 
-            <div className={`col-span-3 h-[calc(100vh-8rem)] transition-all ${
-              activeSection === 'messages' ? 'hidden' : 'block'
+            <div className={`col-span-3 ${
+              activeSection === 'messages' ? 'hidden' : ''
             }`}>
               {user?.role === 'CLIENT' ? <NotificationList /> : <AdminPanel />}
             </div>

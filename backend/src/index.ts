@@ -10,6 +10,7 @@ import authRoutes from './routes/auth';
 import sseRoutes from './routes/sse';
 import messageRoutes from './routes/messages';
 import { initChatSockets } from './sockets/chat';
+import { setIO } from './socket';
 
 const app = express();
 app.use(cors());
@@ -28,6 +29,7 @@ const io = new Server(httpServer, {
 });
 
 
+setIO(io);
 initChatSockets(io);
 
 

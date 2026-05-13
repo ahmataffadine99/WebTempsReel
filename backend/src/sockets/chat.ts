@@ -72,6 +72,14 @@ export const initChatSockets = (io: Server) => {
       }
     });
 
+    socket.on('request_users', async () => {
+      const users = await prisma.user.findMany({
+        where: { isVerified: true },
+        select: { id: true, firstName: true, lastName: true, role: true, email: true },
+      });
+      socket.emit('users_list', users);
+    });
+
     socket.on('disconnect', () => {
       console.log(`Déconnexion: ${socket.id}`);
     });
