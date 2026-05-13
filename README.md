@@ -62,6 +62,14 @@ Les données de test sont injectées automatiquement au démarrage. Aucune manip
 
 Pour tester les fonctionnalités temps réel, ouvrez 3 onglets ou 3 navigateurs différents avec un compte par rôle simultanément.
 
+> [!IMPORTANT]
+> **Procédure recommandée pour l'évaluation du Temps Réel :**
+> 1. Ouvrez **deux fenêtres de navigateur côte à côte**.
+> 2. Connectez-vous sur l'une en tant que **Client** et sur l'autre en tant que **Conseiller**.
+> 3. Allez dans l'onglet **Messagerie** sur les deux fenêtres.
+> 4. **Messagerie instantanée :** Envoyez des messages pour vérifier l'actualisation en temps réel.
+> 5. **Indicateur de saisie :** Dès que vous placez votre curseur dans le champ de texte d'un côté, l'autre utilisateur verra s'afficher "est en train d'écrire..." instantanément.
+
 ---
 
 ## Guide de test des fonctionnalités
